@@ -3,6 +3,8 @@
 # and whether it can reach PostgreSQL.
 module Api
   class HealthController < ApplicationController
+    allow_unauthenticated_access
+
     def show
       database = begin
         ActiveRecord::Base.connection.select_value("SELECT 1")

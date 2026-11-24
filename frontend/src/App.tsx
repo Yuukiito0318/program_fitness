@@ -1,85 +1,49 @@
-import { useEffect, useState } from 'react'
-import { apiGet } from './lib/api'
+import { Route, Routes } from 'react-router'
+import { GuestOnly, RequireAuth } from './auth/RequireAuth'
+import { Layout } from './components/Layout'
+import { ChangePasswordPage } from './pages/ChangePasswordPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { HealthCheckPage } from './pages/HealthCheckPage'
+import { HomePage } from './pages/HomePage'
+import { LoginPage } from './pages/LoginPage'
+import { ProfileEditPage } from './pages/ProfileEditPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { SignupPage } from './pages/SignupPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
+import { MyProgramsPage } from './pages/programs/MyProgramsPage'
+import { ProgramEditorPage } from './pages/programs/ProgramEditorPage'
+import { ProgramPreviewPage } from './pages/programs/ProgramPreviewPage'
 import './App.css'
 
-// Development connectivity check only (frontend -> Rails -> PostgreSQL).
-// Replace this page when real screens are implemented.
-type HealthResponse = {
-  status: string
-  database: 'ok' | 'error'
-  rails_env: string
-  time: string
-}
-
-type CheckState =
-  | { kind: 'loading' }
-  | { kind: 'ok'; data: HealthResponse }
-  | { kind: 'error'; message: string }
-
 function App() {
-  const [state, setState] = useState<CheckState>({ kind: 'loading' })
-
-  const runCheck = () => {
-    setState({ kind: 'loading' })
-    apiGet<HealthResponse>('/api/health')
-      .then((data) => setState({ kind: 'ok', data }))
-      .catch((error: unknown) =>
-        setState({
-          kind: 'error',
-          message: error instanceof Error ? error.message : String(error),
-        }),
-      )
-  }
-
-  useEffect(runCheck, [])
-
   return (
-    <main className="page">
-      <h1>program fitness</h1>
-      <p className="lead">開発環境の接続確認</p>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="health" element={<HealthCheckPage />} />
 
-      <section className="card" aria-live="polite">
-        <Row label="フロントエンド (Vite + React)" ok />
-        <Row
-          label="バックエンド (Rails API)"
-          ok={state.kind === 'ok'}
-          pending={state.kind === 'loading'}
-        />
-        <Row
-          label="データベース (PostgreSQL)"
-          ok={state.kind === 'ok' && state.data.database === 'ok'}
-          pending={state.kind === 'loading'}
-        />
+        {/* Account (not logged in) */}
+        <Route path="signup" element={<GuestOnly><SignupPage /></GuestOnly>} />
+        <Route path="login" element={<GuestOnly><LoginPage /></GuestOnly>} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
 
-        {state.kind === 'ok' && (
-          <p className="meta">
-            Rails env: {state.data.rails_env} / {state.data.time}
-          </p>
-        )}
-        {state.kind === 'error' && (
-          <p className="error">
-            接続できませんでした: {state.message}
-            <br />
-            Rails サーバーと DB が起動しているか確認してください（README 参照）。
-          </p>
-        )}
+        {/* Account (logged in) */}
+        <Route path="profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+        <Route path="profile/edit" element={<RequireAuth><ProfileEditPage /></RequireAuth>} />
+        <Route path="profile/password" element={<RequireAuth><ChangePasswordPage /></RequireAuth>} />
 
-        <button type="button" onClick={runCheck} disabled={state.kind === 'loading'}>
-          再確認
-        </button>
-      </section>
-    </main>
-  )
-}
+        {/* Programs (logged in, own drafts) */}
+        <Route path="my/programs" element={<RequireAuth><MyProgramsPage /></RequireAuth>} />
+        <Route path="my/programs/new" element={<RequireAuth><ProgramEditorPage key="new" /></RequireAuth>} />
+        <Route path="my/programs/:id"element={<RequireAuth><ProgramPreviewPage /></RequireAuth>} />
+        <Route path="my/programs/:id/edit" element={<RequireAuth><ProgramEditorPage /></RequireAuth>} />
 
-function Row({ label, ok, pending = false }: { label: string; ok: boolean; pending?: boolean }) {
-  const text = pending ? '確認中…' : ok ? 'OK' : 'NG'
-  const className = pending ? 'badge pending' : ok ? 'badge ok' : 'badge ng'
-  return (
-    <div className="row">
-      <span>{label}</span>
-      <span className={className}>{text}</span>
-    </div>
+        <Route path="*" element={<p>ページが見つかりません。</p>} />
+      </Route>
+    </Routes>
   )
 }
 

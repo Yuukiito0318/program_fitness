@@ -1,0 +1,88 @@
+ja:
+  activerecord:
+    models:
+      user: ユーザー
+      program: プログラム
+      program_day: トレーニング日
+      program_exercise: 種目
+    attributes:
+      program:
+        title: タイトル
+        description: プログラムの内容
+        target_audience: 対象者
+        equipment: 必要な器具
+        category: 区分
+        duration_value: 期間
+        duration_unit: 期間の単位
+        split_method: 分割法
+        price: 販売価格
+        status: 状態
+      program_day:
+        name: トレーニング日の名前
+        note: メモ
+        position: 順番
+      program_exercise:
+        name: 種目名
+        sets: セット数
+        reps: 回数
+        weight: 重量
+        rest: 休憩
+        note: メモ
+        position: 順番
+      user:
+        email_address: メールアドレス
+        password: パスワード
+        password_confirmation: パスワード（確認）
+        password_challenge: 現在のパスワード
+        nickname: ニックネーム
+        bio: 自己紹介
+        birth_date: 生年月日
+        training_started_on: トレーニング開始年月
+    errors:
+      models:
+        user:
+          attributes:
+            birth_date:
+              in_future: は今日以前の日付を入力してください
+            training_started_on:
+              in_future: は今月以前を入力してください
+              before_birth: は生年月日より後を入力してください
+        program:
+          attributes:
+            duration_value:
+              out_of_range: は%{min}〜%{max}%{unit}の範囲で入力してください
+          too_many_days: トレーニング日は%{count}日までです
+        program_day:
+          too_many_exercises: 種目は1日%{count}種目までです
+  errors:
+    format: "%{attribute}%{message}"
+    messages:
+      blank: を入力してください
+      present: は入力しないでください
+      taken: はすでに使用されています
+      invalid: が正しくありません
+      confirmation: と%{attribute}の入力が一致しません
+      too_short: は%{count}文字以上で入力してください
+      too_long: は%{count}文字以内で入力してください
+      password_too_long: が長すぎます
+      not_a_number: は数値で入力してください
+      not_an_integer: は整数で入力してください
+      inclusion: は一覧から選択してください
+      greater_than_or_equal_to: は%{count}以上で入力してください
+      less_than_or_equal_to: は%{count}以下で入力してください
+      required: を入力してください
+  date:
+    formats:
+      default: "%Y/%m/%d"
+      long: "%Y年%-m月%-d日"
+    day_names: [日曜日, 月曜日, 火曜日, 水曜日, 木曜日, 金曜日, 土曜日]
+    abbr_day_names: [日, 月, 火, 水, 木, 金, 土]
+    month_names: [~, 1月, 2月, 3月, 4月, 5月, 6月, 7月, 8月, 9月, 10月, 11月, 12月]
+    abbr_month_names: [~, 1月, 2月, 3月, 4月, 5月, 6月, 7月, 8月, 9月, 10月, 11月, 12月]
+    order: [year, month, day]
+  time:
+    formats:
+      default: "%Y/%m/%d %H:%M:%S"
+      long: "%Y年%-m月%-d日 %H:%M"
+    am: 午前
+    pm: 午後
