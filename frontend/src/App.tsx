@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
 import { GuestOnly, RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
@@ -14,11 +15,29 @@ import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { MyProgramsPage } from './pages/programs/MyProgramsPage'
 import { ProgramEditorPage } from './pages/programs/ProgramEditorPage'
 import { ProgramPreviewPage } from './pages/programs/ProgramPreviewPage'
+import { FavoritesPage } from './pages/programs/FavoritesPage'
+import { ProgramSearchPage } from './pages/programs/ProgramSearchPage'
+import { PublicProgramPage } from './pages/programs/PublicProgramPage'
+import { NewsDetailPage } from './pages/news/NewsDetailPage'
+import { NewsListPage } from './pages/news/NewsListPage'
 import './App.css'
+
+// Admin screens (/admin) live in src/admin and are split into their own bundle.
+const AdminApp = lazy(() => import('./admin/AdminApp'))
 
 function App() {
   return (
     <Routes>
+      {/* Admin (operator) screens: separate layout and separate login */}
+      <Route
+        path="admin/*"
+        element={
+          <Suspense fallback={<p className="muted">読み込み中…</p>}>
+            <AdminApp />
+          </Suspense>
+        }
+      />
+
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="health" element={<HealthCheckPage />} />
@@ -38,8 +57,17 @@ function App() {
         {/* Programs (logged in, own drafts) */}
         <Route path="my/programs" element={<RequireAuth><MyProgramsPage /></RequireAuth>} />
         <Route path="my/programs/new" element={<RequireAuth><ProgramEditorPage key="new" /></RequireAuth>} />
-        <Route path="my/programs/:id"element={<RequireAuth><ProgramPreviewPage /></RequireAuth>} />
+        <Route path="my/programs/:id" element={<RequireAuth><ProgramPreviewPage /></RequireAuth>} />
         <Route path="my/programs/:id/edit" element={<RequireAuth><ProgramEditorPage /></RequireAuth>} />
+        <Route path="my/favorites" element={<RequireAuth><FavoritesPage /></RequireAuth>} />
+
+        {/* Public programs (published only; login not required) */}
+        <Route path="programs" element={<ProgramSearchPage />} />
+        <Route path="programs/:id" element={<PublicProgramPage />} />
+
+        {/* News (published only; login not required) */}
+        <Route path="news" element={<NewsListPage />} />
+        <Route path="news/:id" element={<NewsDetailPage />} />
 
         <Route path="*" element={<p>ページが見つかりません。</p>} />
       </Route>

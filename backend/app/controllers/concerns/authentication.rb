@@ -7,6 +7,7 @@ module Authentication
   extend ActiveSupport::Concern
 
   SESSION_COOKIE = :session_id
+  ACCOUNT_SUSPENDED_MESSAGE = "このアカウントは利用停止中です。詳しくは登録メールアドレス宛のお知らせをご確認ください。"
 
   included do
     before_action :require_authentication
@@ -39,11 +40,23 @@ module Authentication
       session_id = cookies.signed[SESSION_COOKIE]
       return unless session_id
 
-      Session.active.includes(:user).find_by(id: session_id)
+      session = Session.active.includes(:user).find_by(id: session_id)
+      # A suspended user cannot use the service: drop the session on every request.
+      if session&.user&.suspended?
+        session.destroy
+        reset_session_cookie
+        @account_suspended = true
+        return nil
+      end
+      session
     end
 
     def render_unauthenticated
-      render json: { error: "ログインが必要です。" }, status: :unauthorized
+      if @account_suspended
+        render json: { error: ACCOUNT_SUSPENDED_MESSAGE, code: "account_suspended" }, status: :forbidden
+      else
+        render json: { error: "ログインが必要です。" }, status: :unauthorized
+      end
     end
 
     def start_new_session_for(user)

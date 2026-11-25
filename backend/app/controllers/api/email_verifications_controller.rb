@@ -9,7 +9,9 @@ module Api
     def create
       user = User.find_by_token_for(:email_verification, params[:token].to_s)
 
-      if user
+      if user&.suspended?
+        render json: { error: ACCOUNT_SUSPENDED_MESSAGE, code: "account_suspended" }, status: :forbidden
+      elsif user
         user.verify_email!
         render json: { message: "メールアドレスを確認しました。" }
       else

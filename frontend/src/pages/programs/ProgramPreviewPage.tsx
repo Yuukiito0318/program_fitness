@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatDuration,
   formatPrice,
+  STATUS_LABELS,
   type ProgramDetail,
   type ProgramExercise,
 } from '../../types/program'
@@ -54,6 +55,7 @@ export function ProgramPreviewPage() {
   const duration = formatDuration(program.duration_value, program.duration_unit)
   const price = formatPrice(program.price)
   const r = program.creator.seller_requirements
+  const isDraft = program.status === 'draft'
 
   return (
     <>
@@ -62,12 +64,21 @@ export function ProgramPreviewPage() {
       </p>
       <Alert kind="success">{flash}</Alert>
       <Alert kind="error">{error}</Alert>
-      <div className="alert alert-info">
-        <p>
-          <strong>プレビュー（下書き）</strong>：購入者に表示される内容のイメージです。この画面はあなただけが見られます。
-          販売開始機能は準備中です。
-        </p>
-      </div>
+      {isDraft ? (
+        <div className="alert alert-info">
+          <p>
+            <strong>プレビュー（下書き）</strong>：購入者に表示される内容のイメージです。この画面はあなただけが見られます。
+            販売開始機能は準備中です。
+          </p>
+        </div>
+      ) : (
+        <div className="alert alert-info">
+          <p>
+            <strong>公開中</strong>のプログラムです。公開後の改訂ルールが未決定のため、編集・削除はできません。
+            <Link to={`/programs/${program.id}`}>公開ページを見る</Link>
+          </p>
+        </div>
+      )}
 
       {program.missing_items.length > 0 && (
         <section className="card">
@@ -82,7 +93,7 @@ export function ProgramPreviewPage() {
 
       <article className="card">
         <div className="tags">
-          <span className="badge pending">下書き</span>
+          <span className={isDraft ? 'badge pending' : 'badge ok'}>{STATUS_LABELS[program.status]}</span>
           {program.category && <span className="tag">{CATEGORY_LABELS[program.category]}</span>}
           {duration && <span className="tag">{duration}</span>}
           {program.split_method && <span className="tag">{program.split_method}</span>}
@@ -152,14 +163,14 @@ export function ProgramPreviewPage() {
         作成 {formatDateTime(program.created_at)} ・ 更新 {formatDateTime(program.updated_at)}
       </p>
 
-      <div className="button-row">
+      {isDraft && <div className="button-row">
         <Link className="button" to={`/my/programs/${program.id}/edit`}>
           編集する
         </Link>
         <button type="button" className="button danger-outline" onClick={handleDelete} disabled={deleting}>
           {deleting ? '削除中…' : '削除する'}
         </button>
-      </div>
+      </div>}
     </>
   )
 }

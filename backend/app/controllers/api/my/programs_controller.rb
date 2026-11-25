@@ -133,6 +133,7 @@ module Api
             price: program.price,
             days_count: days.size,
             exercises_count: days.sum { |d| d.exercises.size },
+            published_at: program.published_at&.iso8601,
             updated_at: program.updated_at.iso8601
           }
         end

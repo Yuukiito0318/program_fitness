@@ -29,8 +29,52 @@ class Program < ApplicationRecord
   belongs_to :user
   has_many :days, -> { order(:position) }, class_name: "ProgramDay",
                                             dependent: :destroy, inverse_of: :program, autosave: true
+  has_many :favorites, dependent: :destroy
 
-  enum :status, { draft: "draft" }, default: "draft", validate: true
+  # draft     : 下書き（作成者だけが見られる）
+  # published : 公開中（検索結果・公開詳細に表示）
+  # There is no UI/API to publish yet: publishing (= sale start) requires the seller requirements and
+  # identity verification, whose service is not selected. Development uses `rails dev:publish_program`.
+  enum :status, { draft: "draft", published: "published" }, default: "draft", validate: true
+
+  # Programs anyone may see in search results. Drafts are excluded here, at the query level.
+  scope :publicly_visible, -> { published.where.not(published_at: nil) }
+
+  SEARCH_KEYWORD_MAX_WORDS = 5
+
+  # Search public programs (spec: 販売中プログラムを一覧表示し、検索・絞り込みできる).
+  # filters: q, category, duration_unit, duration_min, duration_max, price_min, price_max (already parsed).
+  # Sort: newest first (published_at). Popularity / recommendation ordering is not decided in the spec.
+  def self.search(filters)
+    scope = publicly_visible
+
+    filters[:q].to_s.split(/[[:space:]]+/).reject(&:blank?).first(SEARCH_KEYWORD_MAX_WORDS).each do |word|
+      pattern = "%#{sanitize_sql_like(word)}%"
+      scope = scope.where(<<~SQL.squish, pattern: pattern)
+        programs.title ILIKE :pattern
+        OR programs.description ILIKE :pattern
+        OR programs.target_audience ILIKE :pattern
+        OR programs.split_method ILIKE :pattern
+        OR programs.equipment ILIKE :pattern
+        OR EXISTS (
+          SELECT 1 FROM program_days d
+          JOIN program_exercises e ON e.program_day_id = d.id
+          WHERE d.program_id = programs.id AND e.name ILIKE :pattern
+        )
+      SQL
+    end
+
+    scope = scope.where(category: filters[:category]) if CATEGORIES.key?(filters[:category])
+    if DURATION_UNITS.key?(filters[:duration_unit])
+      scope = scope.where(duration_unit: filters[:duration_unit])
+      scope = scope.where(duration_value: filters[:duration_min]..) if filters[:duration_min]
+      scope = scope.where(duration_value: ..filters[:duration_max]) if filters[:duration_max]
+    end
+    scope = scope.where(price: filters[:price_min]..) if filters[:price_min]
+    scope = scope.where(price: ..filters[:price_max]) if filters[:price_max]
+
+    scope.order(published_at: :desc, id: :desc)
+  end
 
   normalizes :title, :split_method, with: ->(v) { v.strip }
   normalizes :description, :target_audience, :equipment, with: ->(v) { v.strip.presence }

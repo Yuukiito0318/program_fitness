@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatDuration,
   formatPrice,
+  STATUS_LABELS,
   type ProgramSummary,
 } from '../../types/program'
 
@@ -50,7 +51,9 @@ export function MyProgramsPage() {
           <li key={p.id} className="card program-card">
             <Link to={`/my/programs/${p.id}`} className="program-card-link">
               <div className="program-card-head">
-                <span className="badge pending">下書き</span>
+                <span className={p.status === 'published' ? 'badge ok' : 'badge pending'}>
+                  {STATUS_LABELS[p.status]}
+                </span>
                 <span className="program-card-title">{p.title}</span>
               </div>
               <div className="tags">

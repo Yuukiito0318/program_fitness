@@ -9,9 +9,9 @@ module Api
     rate_limit to: 10, within: 15.minutes, only: :update, with: -> { render_rate_limited }
 
     def create
-      if (user = User.find_by(email_address: params[:email_address].to_s.strip.downcase))
-        AccountMailer.password_reset(user).deliver_later
-      end
+      user = User.find_by(email_address: params[:email_address].to_s.strip.downcase)
+      # Suspended accounts cannot use member features: no reset email (the response stays the same).
+      AccountMailer.password_reset(user).deliver_later if user && !user.suspended?
 
       # Same response whether or not the address is registered (no account probing).
       render json: { message: "登録済みのメールアドレスの場合、パスワード再設定の案内を送信しました。" }
@@ -21,6 +21,9 @@ module Api
       user = User.find_by_token_for(:password_reset, params[:token].to_s)
       unless user
         return render json: { error: "再設定リンクが無効か、有効期限が切れています。" }, status: :unprocessable_content
+      end
+      if user.suspended?
+        return render json: { error: ACCOUNT_SUSPENDED_MESSAGE, code: "account_suspended" }, status: :forbidden
       end
 
       if params[:password].blank?

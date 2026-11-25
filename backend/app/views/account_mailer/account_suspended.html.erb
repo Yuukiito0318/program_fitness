@@ -1,0 +1,17 @@
+<p>program fitness をご利用いただきありがとうございます。</p>
+<p>お客様のアカウントの利用を停止しました。<br>
+停止期間中はログインおよび会員向け機能をご利用いただけません。<br>
+（ログイン不要の公開ページは閲覧できます）</p>
+
+<h3>停止理由</h3>
+<p style="white-space: pre-wrap;"><%= @user_reason %></p>
+
+<h3>停止期間</h3>
+<p>開始：<%= l(@starts_at, format: :long) %><br>
+期限：<%= @ends_at ? l(@ends_at, format: :long) : "運営による解除まで" %></p>
+<% if @ends_at %>
+<p>期限を過ぎると自動的にご利用いただけるようになります。</p>
+<% end %>
+
+<h3>お問い合わせ先</h3>
+<p><%= @support_contact %></p>

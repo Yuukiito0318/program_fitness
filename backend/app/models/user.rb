@@ -15,6 +15,21 @@ class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy
   has_many :programs, dependent: :destroy
+  has_many :favorites, dependent: :destroy
+  has_many :favorite_programs, through: :favorites, source: :program
+  has_many :account_suspensions, -> { order(created_at: :desc) }, dependent: :restrict_with_exception
+
+  # Users whose account is currently suspended (停止中) / not suspended.
+  scope :suspended, -> { where(id: AccountSuspension.in_effect.select(:user_id)) }
+  scope :not_suspended, -> { where.not(id: AccountSuspension.in_effect.select(:user_id)) }
+
+  def active_suspension
+    account_suspensions.in_effect.first
+  end
+
+  def suspended?
+    active_suspension.present?
+  end
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
   normalizes :nickname, with: ->(n) { n.strip.presence }

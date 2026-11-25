@@ -17,8 +17,13 @@ export function Layout() {
           program fitness
         </Link>
         <nav className="site-nav">
+          <NavLink to="/news">ニュース</NavLink>
+          <NavLink to="/programs" end>
+            探す
+          </NavLink>
           {user ? (
             <>
+              <NavLink to="/my/favorites">お気に入り</NavLink>
               <NavLink to="/my/programs">マイプログラム</NavLink>
               <NavLink to="/profile">マイページ</NavLink>
               <button type="button" className="link-button" onClick={handleLogout}>

@@ -5,7 +5,29 @@ ja:
       program: プログラム
       program_day: トレーニング日
       program_exercise: 種目
+      favorite: お気に入り
+      account_suspension: アカウント停止
+      admin_user: 運営者
+      news_article: ニュース
     attributes:
+      news_article:
+        title: タイトル
+        body: 本文
+        category: ニュースの種類
+        status: 公開状態
+      account_suspension:
+        user_reason: 利用者向けの停止理由
+        internal_note: 運営内部メモ
+        lift_reason: 解除理由
+        ends_at: 停止期限
+        starts_at: 停止開始
+      admin_user:
+        email_address: メールアドレス
+        name: 名前
+        password: パスワード
+        password_confirmation: パスワード（確認）
+      favorite:
+        program: プログラム
       program:
         title: タイトル
         description: プログラムの内容
@@ -54,6 +76,14 @@ ja:
           too_many_days: トレーニング日は%{count}日までです
         program_day:
           too_many_exercises: 種目は1日%{count}種目までです
+        favorite:
+          attributes:
+            program:
+              not_published: は公開されていません
+        account_suspension:
+          attributes:
+            ends_at:
+              after_start: は停止開始より後の日時にしてください
   errors:
     format: "%{attribute}%{message}"
     messages:

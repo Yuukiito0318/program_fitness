@@ -2,6 +2,12 @@
 
 export type ProgramCategory = 'power' | 'hypertrophy' | 'balance'
 export type DurationUnit = 'week' | 'month'
+export type ProgramStatus = 'draft' | 'published'
+
+export const STATUS_LABELS: Record<ProgramStatus, string> = {
+  draft: '下書き',
+  published: '公開中',
+}
 
 export const CATEGORY_LABELS: Record<ProgramCategory, string> = {
   power: 'パワー',
@@ -43,7 +49,8 @@ export type SellerRequirements = {
 
 export type ProgramSummary = {
   id: number
-  status: 'draft'
+  status: ProgramStatus
+  published_at: string | null
   title: string
   category: ProgramCategory | null
   duration_value: number | null
@@ -68,6 +75,39 @@ export type ProgramDetail = ProgramSummary & {
     seller_requirements: SellerRequirements
   }
   created_at: string
+}
+
+/** A published program in search results / favorites (GET /api/programs, /api/my/favorites). */
+export type PublicProgramCard = {
+  id: number
+  title: string
+  category: ProgramCategory | null
+  duration_value: number | null
+  duration_unit: DurationUnit | null
+  split_method: string | null
+  price: number | null
+  days_count: number
+  exercises_count: number
+  published_at: string | null
+  creator: { nickname: string | null; training_years: number }
+  favorited: boolean
+  favorited_at?: string
+}
+
+/** Public detail before purchase: no per-exercise sets/reps/weight (only counts). */
+export type PublicProgramDetail = Omit<PublicProgramCard, 'creator'> & {
+  description: string | null
+  target_audience: string | null
+  equipment: string | null
+  creator: { nickname: string | null; bio: string | null; training_years: number }
+}
+
+export type ProgramSearchResponse = {
+  programs: PublicProgramCard[]
+  total: number
+  page: number
+  per_page: number
+  total_pages: number
 }
 
 export function formatDuration(value: number | null, unit: DurationUnit | null): string | null {
